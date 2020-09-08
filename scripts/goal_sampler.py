@@ -41,14 +41,21 @@ class GoalSampler:
         
         return radial_points
 
-    # def get_reachable_points(self, radial_points):
+    def is_reachable_in_straight_line(self, start_pos, end_pos):
+        pass
 
-    #     reachable_points = []
-    #     for point in radial_points:
-    #         if self.is_reachable_in_straight_line(point):
-    #             reachable_points.append(point)
+    def get_reachable_points(self, radial_points):
 
-    #     return reachable_points
+        reachable_points = []
+        for point in radial_points:
+            #convert point to cell coordinates
+            x,y = point
+            x = int(x / 0.05) # divide by map_resolution
+            y = int(y / 0.05)
+            if self.is_reachable_in_straight_line(cell_coord):
+                reachable_points.append(point)
+
+        return reachable_points
 
     
 
@@ -63,16 +70,5 @@ if __name__ == '__main__':
     g = GoalSampler()
     pts = g.get_radial_points((100,100), 10, math.pi/4)
     print(pts)
-    from visualizer import DarksideVisualizer
-    from geometry_msgs.msg import Pose
-    viz = DarksideVisualizer()
-    pose = Pose()
-    pose.position.x,pose.position.y,pose.position.z = (100, 100, 0)
-    pose.orientation.x,pose.orientation.y,pose.orientation.z,pose.orientation.w = (0,0,0,0)
-    npose = viz.make_pose(pose, pts[1])
-    mkr = viz.make_marker(npose)
-    viz.publish_marker(mkr)
-    print("DONE")
-    rospy.spin()
-#43.34,-12.16
+
 

@@ -49,28 +49,31 @@ class DarksideVisualizer:
         return marker_points
 
     def publish_markers(self, markers):
-        #for marker in markers:
         self.goal_position.publish(markers)
 
 
-def get_points(rpose):
-    points = g.get_radial_points((rpose.position.x,rpose.position.y), radius=6, step_size=math.pi/6)
-    print("POINTS : ", len(points))
-    point_array = viz.make_points(points)
-    print("POSES : ", len(point_array))
-    marker = viz.make_marker(point_array)
-    return marker
 
-def poseCallback(msg):
-    markers = get_points(msg)
-    print("MARKERS :", len(markers.points))
-    viz.publish_markers(markers)
-    rospy.loginfo("Displaying marker")
 
-if __name__ == '__main__':
-    rospy.init_node('viz_manager', anonymous=True)
-    from goal_sampler import GoalSampler
-    g = GoalSampler()
-    viz = DarksideVisualizer()
-    rospy.Subscriber("/robot_pose", Pose, poseCallback)
-    rospy.spin()
+
+
+# def get_points(rpose):
+#     points = g.get_radial_points((rpose.position.x,rpose.position.y), radius=6, step_size=math.pi/6)
+#     print("POINTS : ", len(points))
+#     point_array = viz.make_points(points)
+#     print("POSES : ", len(point_array))
+#     marker = viz.make_marker(point_array)
+#     return marker
+
+# def poseCallback(msg):
+#     markers = get_points(msg)
+#     print("MARKERS :", len(markers.points))
+#     viz.publish_markers(markers)
+#     rospy.loginfo("Displaying marker")
+
+# if __name__ == '__main__':
+#     rospy.init_node('viz_manager', anonymous=True)
+#     from goal_sampler import GoalSampler
+#     g = GoalSampler()
+#     viz = DarksideVisualizer()
+#     rospy.Subscriber("/robot_pose", Pose, poseCallback)
+#     rospy.spin()
