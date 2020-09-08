@@ -58,11 +58,21 @@ class GoalSampler:
 
 
 if __name__ == '__main__':
-
+    import rospy
+    rospy.init_node('viz_manager', anonymous=True)
     g = GoalSampler()
     pts = g.get_radial_points((100,100), 10, math.pi/4)
     print(pts)
-
-
+    from visualizer import DarksideVisualizer
+    from geometry_msgs.msg import Pose
+    viz = DarksideVisualizer()
+    pose = Pose()
+    pose.position.x,pose.position.y,pose.position.z = (100, 100, 0)
+    pose.orientation.x,pose.orientation.y,pose.orientation.z,pose.orientation.w = (0,0,0,0)
+    npose = viz.make_pose(pose, pts[1])
+    mkr = viz.make_marker(npose)
+    viz.publish_marker(mkr)
+    print("DONE")
+    rospy.spin()
 #43.34,-12.16
 
