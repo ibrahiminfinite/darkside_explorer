@@ -2,26 +2,29 @@
 
 import rospy
 import math
-from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Pose, Point
 from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
 
 class DarksideVisualizer:
 
     def __init__(self):
-        self.goal_position = rospy.Publisher('/darkside_explorer/local_goal', MarkerArray, queue_size=1)
+        self.goal_position = rospy.Publisher('/darkside_explorer/local_goal', Marker, queue_size=1)
         self.marker_id = 0
 
-    def make_marker(self, marker_pose, scale_=[0.1,0.1,0.1], color_=(0,1,0,1), lifetime_=30):
+    def make_marker(self, marker_points, scale_=[0.3,0.3,0.3], color_=(0,0,1,1), lifetime_=0.1):
+
         marker_ = Marker()
         marker_.id = self.marker_id
+        
         self.marker_id +=1
         marker_.header.frame_id = "/X1/map"
+
         # marker_.header.stamp = rospy.Time.now()
-        marker_.type = marker_.SPHERE
+        marker_.type = marker_.POINTS
         marker_.action = marker_.ADD
 
-        marker_.pose = marker_pose
+        marker_.points = marker_points
 
         marker_.lifetime = rospy.Duration.from_sec(lifetime_)
 
@@ -36,11 +39,14 @@ class DarksideVisualizer:
         marker_.color.a = a_
         return marker_
 
-    def make_pose(self, robot_pose, point):
-        pose_t = robot_pose
-        pose_t.position.x, pose_t.position.y= point
-
-        return pose_t
+    def make_points(self, points):
+        marker_points = []
+        for point in points :
+            p = Point()
+            x,y = point
+            p.x, p.y, p.z = x, y, 0
+            marker_points.append(p)
+        return marker_points
 
     def publish_markers(self, markers):
         #for marker in markers:
@@ -48,18 +54,16 @@ class DarksideVisualizer:
 
 
 def get_points(rpose):
-    points = g.get_radial_points((rpose.position.x,rpose.position.y), radius=2, step_size=math.pi/2)
+    points = g.get_radial_points((rpose.position.x,rpose.position.y), radius=6, step_size=math.pi/6)
     print("POINTS : ", len(points))
-    pose_array = [viz.make_pose(rpose, point ) for point in points]
-    print("POSES : ", len(pose_array))
-    markerArray = MarkerArray()
-    for pose in pose_array:
-        markerArray.markers.append(viz.make_marker(pose))
-    return markerArray
+    point_array = viz.make_points(points)
+    print("POSES : ", len(point_array))
+    marker = viz.make_marker(point_array)
+    return marker
 
 def poseCallback(msg):
     markers = get_points(msg)
-    print("MARKERS :", len(markers.markers))
+    print("MARKERS :", len(markers.points))
     viz.publish_markers(markers)
     rospy.loginfo("Displaying marker")
 
