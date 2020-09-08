@@ -9,9 +9,9 @@ samples radial goals with current position for robot as the center
 # 3. If not goals reduce / increase sampling radius by relaxation factor
 # 4. consider distance from last goal and difference in yaw for scoring next goal
 
-import rospy
+# import rospy
 import math
-from geometry_msgs import Pose, Point, PoseStamped
+# from geometry_msgs import Pose, Point, PoseStamped
 
 
 class Goal:
@@ -23,34 +23,46 @@ class Goal:
 
 class GoalSampler:
 
-    def __init__(self, angular_step_size=0.01, radial_length=1, radial_relaxation=0.5):
-        self.angular_step_size = angular_step_size # determines the number of samples
-        self.radial_length = radial_length # in meters
-        self.radial_relaxation = radial_relaxation # distance to increase or decrease if no goal found in meters
+    def __init__(self):
+        self.angular_step_size = None # determines the number of samples
+        self.radial_length = None # in meters
+        self.radial_relaxation = None # distance to increase or decrease if no goal found in meters
         self.robot_origin = None
 
-    def get_radial_points(self, x, y, radius=self.radial_length, step_size=self.angular_step_size):
+    def get_radial_points(self, origin, radius, step_size):
         
         ang = 0 
         radial_points = []
-        x = x
-        y = y
-        while ang <= math.pi:                        
+        x, y = origin
+        while ang < math.pi*2:  
+            print(ang)                      
             radial_points.append((x + radius*math.cos(ang),y + radius*math.sin(ang)))
             ang += step_size
         
         return radial_points
 
-    def get_reachable_points(self, radial_points):
+    # def get_reachable_points(self, radial_points):
 
-        reachable_points = []
-        for point in radial_points:
-            if self.is_reachable_in_straight_line(point):
-                reachable_points.append(point)
+    #     reachable_points = []
+    #     for point in radial_points:
+    #         if self.is_reachable_in_straight_line(point):
+    #             reachable_points.append(point)
 
-        return reachable_points
+    #     return reachable_points
 
     
 
     def compute_sample_gain(self, reachable_points):
         # TODO : compute gain
+        pass
+
+
+if __name__ == '__main__':
+
+    g = GoalSampler()
+    pts = g.get_radial_points((100,100), 10, math.pi/4)
+    print(pts)
+
+
+#43.34,-12.16
+

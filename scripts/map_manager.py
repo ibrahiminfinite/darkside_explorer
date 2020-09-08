@@ -32,7 +32,7 @@ class MapManager:
 
     def __init__(self):
 
-        self.update_map = True
+        self.update_map = True #/X1/move_base/global_costmap/costmap
         self.map_subscriber = rospy.Subscriber("/X1/move_base/global_costmap/costmap", OccupancyGrid, self.mapCallback)
         self.map = None
         self.map_raw = None
