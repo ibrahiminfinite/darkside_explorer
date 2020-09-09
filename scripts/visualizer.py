@@ -87,26 +87,26 @@ ray cast viz
 
 
 
-# def get_points(rpose):
-#     x, y = int(rpose.position.x/0.05),int(rpose.position.y/0.05)
-#     points = r.cast_ray((x, y),(500,500))[2] 
-#     points = [(x*0.05, y*0.05) for x,y in points]
-#     print("POINTS : ", len(points))
-#     point_array = viz.make_points(points)
-#     print("POSES : ", len(point_array))
-#     marker = viz.make_marker(point_array,scale_=[0.05,0.05,0.05], color_=(0,0,1,1))
-#     return marker
+def get_points(rpose):
+    x, y = int(rpose.position.x/0.05),int(rpose.position.y/0.05)
+    points = r.cast_ray((x, y),(500,500))[2] 
+    points = [(x*0.05, y*0.05) for x,y in points]
+    print("POINTS : ", len(points))
+    point_array = viz.make_points(points)
+    print("POSES : ", len(point_array))
+    marker = viz.make_marker(point_array,scale_=[0.05,0.05,0.05], color_=(0,0,1,1))
+    return marker
 
-# def poseCallback(msg):
-#     markers = get_points(msg)
-#     print("MARKERS :", len(markers.points))
-#     viz.publish_markers(markers)
-#     rospy.loginfo("Displaying marker")
+def poseCallback(msg):
+    markers = get_points(msg)
+    print("MARKERS :", len(markers.points))
+    viz.publish_markers(markers)
+    rospy.loginfo("Displaying marker")
 
-# if __name__ == '__main__':
-#     rospy.init_node('viz_manager', anonymous=True)
-#     from raytrace_utils import RayTrace
-#     r = RayTrace()
-#     viz = DarksideVisualizer()
-#     rospy.Subscriber("/robot_pose", Pose, poseCallback)
-#     rospy.spin()
+if __name__ == '__main__':
+    rospy.init_node('viz_manager', anonymous=True)
+    from raytrace_utils import RayTrace
+    r = RayTrace()
+    viz = DarksideVisualizer()
+    rospy.Subscriber("/robot_pose", Pose, poseCallback)
+    rospy.spin()

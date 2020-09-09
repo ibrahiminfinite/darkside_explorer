@@ -19,11 +19,14 @@ class RobotMonitor:
     def poseCallback(self,pose_msg):
         if self.update_pose:
             self.robot_pose = pose_msg
-            #self.update_pose = False
+            self.update_pose = False
         
     def get_robot_pose(self):
         return self.robot_pose
 
+    def update_robot_pose(self):
+        self.update_pose = True
+        rospy.sleep(0.5)
 
 
 class MapManager:
@@ -62,17 +65,27 @@ class MapManager:
     def raw_to_numpy(self, raw_map):   
         numpy_map = list(list())
         for row in range(self.map_height_in_cells)[::-1]:
-            row = []
+            row_i = []
             for column in range(self.map_width_in_cells):
-                row.append(self.map_raw[(row*self.map_width_in_cells) + column ])
-            numpy_map.append(row)
+                row_i.append(self.map_raw[(row*self.map_width_in_cells) + column ])
+            numpy_map.append(row_i)
         self.numpy_map = np.asarray(numpy_map)
     
     def get_map(self):
-        if self.map == None:
-            rospy.logwarn("Map data is 'None'")
-        else:
-            return self.map
+        empty_map =False
+        try:
+            if self.numpy_map.size == 0:
+                rospy.logwarn("Map data is 'None'")
+                empty_map = True
+        except:
+            if self.numpy_map == None :
+                rospy.logwarn("Map data is 'None'")
+                empty_map = True
+ 
+        if not empty_map:
+            return self.numpy_map
+        else : 
+            return None
 
     def update_map(self):
         if not self.update:

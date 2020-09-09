@@ -50,5 +50,10 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-catkin_install_python(PROGRAMS scripts/map_manager.py scripts/visualizer.py scripts/goal_sampler.py
+catkin_install_python(PROGRAMS 
+  scripts/map_manager.py 
+  scripts/visualizer.py 
+  scripts/goal_sampler.py 
+  scripts/raytrace_utils.py
+  scripts/local_sampling_test.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
