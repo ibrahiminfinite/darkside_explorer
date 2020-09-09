@@ -44,7 +44,8 @@ class GoalSampler:
     def is_reachable_in_straight_line(self, start_pos, end_pos):
         pass
 
-    def get_reachable_points(self, radial_points):
+
+    def get_reachable_points(self, start_coordinates, radial_points):
 
         reachable_points = []
         for point in radial_points:
@@ -52,7 +53,8 @@ class GoalSampler:
             x,y = point
             x = int(x / 0.05) # divide by map_resolution
             y = int(y / 0.05)
-            if self.is_reachable_in_straight_line(cell_coord):
+            cell_coord = (x,y)
+            if self.is_reachable_in_straight_line(start_coordinates, end_pos=cell_coord):
                 reachable_points.append(point)
 
         return reachable_points
@@ -66,7 +68,7 @@ class GoalSampler:
 
 if __name__ == '__main__':
     import rospy
-    rospy.init_node('viz_manager', anonymous=True)
+    rospy.init_node('goal_manager', anonymous=True)
     g = GoalSampler()
     pts = g.get_radial_points((100,100), 10, math.pi/4)
     print(pts)

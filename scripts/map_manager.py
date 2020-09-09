@@ -4,16 +4,36 @@ Map Manager that subscribes to and maintains the map that the explorer will use
 """
 
 import rospy
+import numpy as np
+from geometry_msgs.msg import Pose
 from nav_msgs.msg import OccupancyGrid
+
+
+class RobotMonitor:
+
+    def __init__(self, robot_pose_topics="/robot_pose"):
+        self.pose_subscriber = rospy.Subscriber("/robot_pose", Pose, self.poseCallback)
+        self.robot_pose = None
+        self.update_pose = True
+
+    def poseCallback(self,pose_msg):
+        if self.update_pose:
+            self.robot_pose = pose_msg
+            #self.update_pose = False
+        
+    def get_robot_pose(self):
+        return self.robot_pose
+
 
 
 class MapManager:
 
     def mapCallback(self,map_msg):
                        
-        if self.update_map:
+        if self.update:
             #map_info
             self.map_raw = map_msg.data 
+            
             self.map_height_in_cells = map_msg.info.height
             self.map_width_in_cells  = map_msg.info.width
             self.map_resolution = map_msg.info.resolution
@@ -22,22 +42,31 @@ class MapManager:
 
             rospy.loginfo("Height : %d ,  Width : %d ", self.map_height_in_cells, self.map_width_in_cells)
             rospy.loginfo("OriginX : %d ,  OriginY : %d ", self.origin_x, self.origin_y)
-            # map data 
-            # self.map_last_update_time = rospy.Time.now()
-            # self.raw_to_grid() #converts raw map array to grid
-            # self.update_map = False
+
+            self.map_last_update_time = rospy.Time.now()
+            self.raw_to_numpy(self.map_raw) #converts raw map array to numpy
+            self.update = False
         else:
             rospy.loginfo("New map update received, but not updated")
 
 
     def __init__(self):
 
-        self.update_map = True #/X1/move_base/global_costmap/costmap
+        self.update = True #/X1/move_base/global_costmap/costmap
         self.map_subscriber = rospy.Subscriber("/X1/move_base/global_costmap/costmap", OccupancyGrid, self.mapCallback)
-        self.map = None
+        self.numpy_map = None
         self.map_raw = None
         self.map_last_update_time = rospy.Time.now()
-        
+
+
+    def raw_to_numpy(self, raw_map):   
+        numpy_map = list(list())
+        for row in range(self.map_height_in_cells)[::-1]:
+            row = []
+            for column in range(self.map_width_in_cells):
+                row.append(self.map_raw[(row*self.map_width_in_cells) + column ])
+            numpy_map.append(row)
+        self.numpy_map = np.asarray(numpy_map)
     
     def get_map(self):
         if self.map == None:
@@ -46,8 +75,8 @@ class MapManager:
             return self.map
 
     def update_map(self):
-        if not self.update_map:
-            self.update_map = True 
+        if not self.update:
+            self.update = True 
 
             
 if __name__ == '__main__':
