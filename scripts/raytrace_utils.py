@@ -13,12 +13,18 @@ class RayTrace:
     def __init__(self, cost_map=None, sensor_config={'range':10}):
 
         self.cost_map = cost_map #numpy array
+        self.cost_map_origin = None
         self.sensor_config = sensor_config
 
+
+    def set_map(self,gmap, orign):
+        self.cost_map = gmap
+        self.cost_map_origin = orign
     
     def is_obstacle(self, cell_coordinate):
         # cell_coordinate is the point on the map in num_cells , (100,100) means cell (100,100) not meters
-        if self.cost_map[cell_coordinate[0],cell_coordinate[1]] > 50:
+        print(self.cost_map[cell_coordinate[0],cell_coordinate[1]])
+        if self.cost_map[cell_coordinate[0],cell_coordinate[1]] > 0:
             return True
         else:
             return False
@@ -54,7 +60,7 @@ class RayTrace:
 
         D = 2*dy - dx
         y = 0
-        print("X :",dx, " Y : ", dy)
+        # print("X :",dx, " Y : ", dy)
         for x in range(dx + 1):
             position = (x0 + x*xx + y*yx, y0 + x*xy + y*yy)
             ray.append(position)
@@ -67,9 +73,14 @@ class RayTrace:
                 y += 1
                 D -= 2*dx
             D += 2*dy
-
+            if collision:
+                break    
     
         return collision, collision_dist ,ray #cells status in ray needed ??
+
+
+
+
 
 
 if __name__ == '__main__':

@@ -66,7 +66,7 @@ class MapManager:
         numpy_map = list(list())
         for row in range(self.map_height_in_cells)[::-1]:
             row_i = []
-            for column in range(self.map_width_in_cells):
+            for column in range(self.map_width_in_cells)[::-1]:
                 row_i.append(self.map_raw[(row*self.map_width_in_cells) + column ])
             numpy_map.append(row_i)
         self.numpy_map = np.asarray(numpy_map)
@@ -86,6 +86,10 @@ class MapManager:
             return self.numpy_map
         else : 
             return None
+
+    def get_map_origin(self):
+        return (self.origin_x, self.origin_y) # in meters
+
 
     def update_map(self):
         if not self.update:

@@ -15,19 +15,23 @@ if __name__ == '__main__':
     m_manager = MapManager()
     r_monitor = RobotMonitor()
     g_sampler = GoalSampler()
-    ry_tracer = RayTrace()
     visualize = DarksideVisualizer()
 
     r = rospy.Rate(10)
     while not rospy.is_shutdown():
+            
         #Get map
-        m_manager.update_map()
-        m_manager.get_map()
         gmap = m_manager.get_map()
+        g_sampler.set_ray_tracer_map(gmap)
+        while gmap is None:
+            rospy.loginfo("Waiting for map ")
+            gmap = m_manager.get_map()
+            g_sampler.set_ray_tracer_map(gmap, m_manager.get_map_origin())
+
+
         r_monitor.update_robot_pose()
         rpose = r_monitor.get_robot_pose()
 
-        print(gmap)
-        print("\n\n\n")
-        print(rpose)
+        goals = g_sampler.get_goals(rpose)
+        visualize.visualize_goal_samples(goals)
         r.sleep()
