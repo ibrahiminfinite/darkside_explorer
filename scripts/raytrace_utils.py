@@ -23,7 +23,7 @@ class RayTrace:
     
     def is_obstacle(self, cell_coordinate):
         # cell_coordinate is the point on the map in num_cells , (100,100) means cell (100,100) not meters
-        print(self.cost_map[cell_coordinate[0],cell_coordinate[1]])
+        # print(self.cost_map[cell_coordinate[0],cell_coordinate[1]])
         if self.cost_map[cell_coordinate[0],cell_coordinate[1]] > 0:
             return True
         else:

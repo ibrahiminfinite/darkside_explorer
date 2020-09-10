@@ -4,6 +4,7 @@ Map Manager that subscribes to and maintains the map that the explorer will use
 """
 
 import rospy
+import sys
 import numpy as np
 from geometry_msgs.msg import Pose
 from nav_msgs.msg import OccupancyGrid
@@ -49,6 +50,8 @@ class MapManager:
             self.map_last_update_time = rospy.Time.now()
             self.raw_to_numpy(self.map_raw) #converts raw map array to numpy
             self.update = False
+            np.set_printoptions(linewidth=1000,threshold=sys.maxsize)
+            # print(self.numpy_map)
         else:
             rospy.loginfo("New map update received, but not updated")
 
@@ -56,20 +59,28 @@ class MapManager:
     def __init__(self):
 
         self.update = True #/X1/move_base/global_costmap/costmap
-        self.map_subscriber = rospy.Subscriber("/X1/move_base/global_costmap/costmap", OccupancyGrid, self.mapCallback)
+        self.map_subscriber = rospy.Subscriber("/X1/move_base/local_costmap/costmap", OccupancyGrid, self.mapCallback)
         self.numpy_map = None
         self.map_raw = None
         self.map_last_update_time = rospy.Time.now()
+        self.map_height_in_cells = None
+        self.map_width_in_cells  = None
+        self.map_resolution = None
+        self.origin_x = None
+        self.origin_y = None
 
 
     def raw_to_numpy(self, raw_map):   
         numpy_map = list(list())
-        for row in range(self.map_height_in_cells)[::-1]:
+        for row in range(self.map_height_in_cells):
             row_i = []
             for column in range(self.map_width_in_cells)[::-1]:
                 row_i.append(self.map_raw[(row*self.map_width_in_cells) + column ])
             numpy_map.append(row_i)
         self.numpy_map = np.asarray(numpy_map)
+        self.numpy_map = np.rot90(self.numpy_map, k=1, axes=(0, 1))
+        # self.numpy_map = np.rot90(self.numpy_map, k=1, axes=(0, 1))
+        # self.numpy_map = np.rot90(self.numpy_map, k=1, axes=(0, 1))
     
     def get_map(self):
         empty_map =False

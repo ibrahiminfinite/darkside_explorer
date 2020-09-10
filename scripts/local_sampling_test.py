@@ -17,14 +17,16 @@ if __name__ == '__main__':
     g_sampler = GoalSampler()
     visualize = DarksideVisualizer()
 
-    r = rospy.Rate(10)
+    r = rospy.Rate(1)
     while not rospy.is_shutdown():
             
         #Get map
+        m_manager.update_map()
         gmap = m_manager.get_map()
-        g_sampler.set_ray_tracer_map(gmap)
+        g_sampler.set_ray_tracer_map(gmap,m_manager.get_map_origin())
         while gmap is None:
             rospy.loginfo("Waiting for map ")
+            m_manager.update_map()
             gmap = m_manager.get_map()
             g_sampler.set_ray_tracer_map(gmap, m_manager.get_map_origin())
 

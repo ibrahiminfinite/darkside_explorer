@@ -34,7 +34,7 @@ class GoalSampler:
     def set_ray_tracer_map(self,gmap, origin):
         self.ray_tracer.set_map(gmap, origin)
 
-    def get_radial_points(self, origin, radius=4, step_size=math.pi/4):
+    def get_radial_points(self, origin, radius=4, step_size=math.pi/12):
         
         ang = 0 
         radial_points = []
@@ -50,14 +50,19 @@ class GoalSampler:
         collision, _, _ = self.ray_tracer.cast_ray(start_pos, end_pos)
         return (not collision)
 
+
+
     def get_reachable_points(self, start_coordinates, radial_points):
-        start_coordinates = int(start_coordinates[0]/0.05), int(start_coordinates[1]/0.05)
+        start_x = int((start_coordinates[0] - self.ray_tracer.cost_map_origin[0])/0.05)
+        start_y = int((start_coordinates[1] - self.ray_tracer.cost_map_origin[1])/0.05)
+        start_coordinates = (start_x, start_y)
         reachable_points = []
         for point in radial_points:
             #convert point to cell coordinates
+
             x,y = point
-            x = int(x / 0.05) # divide by map_resolution
-            y = int(y / 0.05)
+            x = int((x- self.ray_tracer.cost_map_origin[0]) / 0.05) # divide by map_resolution
+            y = int((y- self.ray_tracer.cost_map_origin[1]) / 0.05)
             cell_coord = (x,y)
             if self.is_reachable_in_straight_line(start_coordinates, end_pos=cell_coord):
                 reachable_points.append(point)
