@@ -12,7 +12,7 @@ samples radial goals with current position for robot as the center
 import rospy
 import math
 from raytrace_utils import RayTrace
-# from geometry_msgs import Pose, Point, PoseStamped
+
 
 
 class Goal:

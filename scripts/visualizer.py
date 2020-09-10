@@ -57,6 +57,7 @@ class DarksideVisualizer:
         self.publish_markers(self.make_marker(ros_points, lifetime_= 1))
         rospy.loginfo("Published goal visualizer")
 
+
 """
 radial point viz 
 """
