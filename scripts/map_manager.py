@@ -12,8 +12,8 @@ from nav_msgs.msg import OccupancyGrid
 
 class RobotMonitor:
 
-    def __init__(self, robot_pose_topics="/robot_pose"):
-        self.pose_subscriber = rospy.Subscriber("/robot_pose", Pose, self.poseCallback)
+    def __init__(self, robot_pose_topics="X1/robot_pose"):
+        self.pose_subscriber = rospy.Subscriber(robot_pose_topics, Pose, self.poseCallback)
         self.robot_pose = None
         self.update_pose = True
 
@@ -53,13 +53,13 @@ class MapManager:
             np.set_printoptions(linewidth=1000,threshold=sys.maxsize)
             # print(self.numpy_map)
         else:
-            rospy.loginfo("New map update received, but not updated")
-
+            # rospy.loginfo("New map update received, but not updated")
+            pass
 
     def __init__(self):
 
         self.update = True #/X1/move_base/global_costmap/costmap
-        self.map_subscriber = rospy.Subscriber("/X1/move_base/local_costmap/costmap", OccupancyGrid, self.mapCallback)
+        self.map_subscriber = rospy.Subscriber("/X1/move_base/global_costmap/costmap", OccupancyGrid, self.mapCallback)
         self.numpy_map = None
         self.map_raw = None
         self.map_last_update_time = rospy.Time.now()

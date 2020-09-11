@@ -12,7 +12,7 @@ class DarksideVisualizer:
         self.goal_position = rospy.Publisher('/darkside_explorer/local_goal', Marker, queue_size=1)
         self.marker_id = 0
 
-    def make_marker(self, marker_points, scale_=[0.3,0.3,0.3], color_=(0,0,1,1), lifetime_=0.1):
+    def make_marker(self, marker_points, scale_=[0.3,0.3,0.3], color_=(0,0,1,1), lifetime_= 1):
 
         marker_ = Marker()
         marker_.id = self.marker_id
@@ -54,7 +54,7 @@ class DarksideVisualizer:
 
     def visualize_goal_samples(self, goal_points):
         ros_points = self.make_points(goal_points)
-        self.publish_markers(self.make_marker(ros_points, lifetime_= 1))
+        self.publish_markers(self.make_marker(ros_points, lifetime_= 300, color_=(0,1,0,1)))
         rospy.loginfo("Published goal visualizer")
 
 

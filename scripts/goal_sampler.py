@@ -34,8 +34,8 @@ class GoalSampler:
     def set_ray_tracer_map(self,gmap, origin):
         self.ray_tracer.set_map(gmap, origin)
 
-    def get_radial_points(self, origin, radius=4, step_size=math.pi/12):
-        
+    def get_radial_points(self, origin, radius=5, step_size=math.pi/2):
+        self.angular_step_size = step_size
         ang = 0 
         radial_points = []
         x, y = origin
@@ -53,6 +53,7 @@ class GoalSampler:
 
 
     def get_reachable_points(self, start_coordinates, radial_points):
+        #convert point to cell coordinates
         start_x = int((start_coordinates[0] - self.ray_tracer.cost_map_origin[0])/0.05)
         start_y = int((start_coordinates[1] - self.ray_tracer.cost_map_origin[1])/0.05)
         start_coordinates = (start_x, start_y)
@@ -71,9 +72,65 @@ class GoalSampler:
 
     
 
-    def compute_sample_gain(self, reachable_points):
-        # TODO : compute gain
-        pass
+    def generate_scan_at(self,start_coordinates,radius):
+        #cell coordinates in meters
+        scan = []
+        scan_end_points = self.get_radial_points(origin=start_coordinates, radius=radius ,step_size=math.pi/180)
+        #convert point to cell coordinates
+        start_x = int((start_coordinates[0] - self.ray_tracer.cost_map_origin[0])/0.05)
+        start_y = int((start_coordinates[1] - self.ray_tracer.cost_map_origin[1])/0.05)
+        start_coord = (start_x, start_y)
+
+        for end_point in scan_end_points:
+
+            x,y = end_point
+            x = int((x- self.ray_tracer.cost_map_origin[0]) / 0.05) # divide by map_resolution
+            y = int((y- self.ray_tracer.cost_map_origin[1]) / 0.05)
+            cell_coord = (x,y)
+            _, _, ray = self.ray_tracer.cast_ray(start_coord, cell_coord )
+            scan.append(ray)
+        return scan
+
+    
+    def compute_gain_at(self, origin_coord,radius):
+
+        scan = self.generate_scan_at(origin_coord,radius)
+        gain = 0
+        for ray in scan:
+            for cell_coord in ray:
+                if cell_coord[0] >= self.ray_tracer.cost_map.shape[0] or cell_coord[1] >= self.ray_tracer.cost_map.shape[1]:
+                 cell_val = -1
+                else:
+                    cell_val = self.ray_tracer.cost_map[cell_coord[0],cell_coord[1]]
+                    if cell_val == -1:
+                        gain += 100
+                    elif cell_val == 0:
+                        gain += 10
+
+        return gain
+
+
+    def compute_gain(self, origin_coord, reachable_points):
+        gains = []
+        # rds1 = self.ray_tracer.sensor_config['range']
+        print("size ", self.ray_tracer.cost_map.shape)
+        x_dist = (self.ray_tracer.cost_map.shape[0]/2)  * 0.05
+        y_dist = (self.ray_tracer.cost_map.shape[1]/2)  * 0.05
+        x_dist = abs(x_dist - abs(origin_coord[0]))
+        y_dist = abs(y_dist - abs(origin_coord[1]))
+        if x_dist < y_dist:
+            rds = x_dist 
+        else:
+            rds = y_dist  # 10 is the radius of sample points
+        # if rds1 < rds :
+        #     rds = rds1
+
+        for point in reachable_points:
+            gain = self.compute_gain_at(point, radius=rds)
+            gains.append((gain, point))
+        return sorted(gains)
+        
+
 
 
     def get_goals(self, robot_pose):
@@ -81,7 +138,8 @@ class GoalSampler:
         y = robot_pose.position.y
         radial_points = self.get_radial_points((x,y))
         goals = self.get_reachable_points((x,y), radial_points)
-        return goals
+        goal_gains = self.compute_gain((x,y), goals)
+        return goals,goal_gains
 
 
 

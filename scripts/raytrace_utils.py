@@ -10,7 +10,7 @@ import math
 
 class RayTrace:
 
-    def __init__(self, cost_map=None, sensor_config={'range':10}):
+    def __init__(self, cost_map=None, sensor_config={'range':50}):
 
         self.cost_map = cost_map #numpy array
         self.cost_map_origin = None
@@ -24,11 +24,18 @@ class RayTrace:
     def is_obstacle(self, cell_coordinate):
         # cell_coordinate is the point on the map in num_cells , (100,100) means cell (100,100) not meters
         # print(self.cost_map[cell_coordinate[0],cell_coordinate[1]])
-        if self.cost_map[cell_coordinate[0],cell_coordinate[1]] > 0:
+        if cell_coordinate[0] >= self.cost_map.shape[0] or cell_coordinate[1] >= self.cost_map.shape[1]:
+            return True
+        if self.cost_map[cell_coordinate[0],cell_coordinate[1]] > 70:
             return True
         else:
             return False
 
+    def get_cell_value(self, cell_coord):
+        if cell_coord[0] >= self.cost_map.shape[0] or cell_coord[1] >= self.cost_map.shape[1]:
+            return -1 
+        return self.cost_map[cell_coord[0],cell_coord[1]] 
+     
 
     def cast_ray(self, start_coord, end_coord):
 
@@ -77,6 +84,7 @@ class RayTrace:
                 break    
     
         return collision, collision_dist ,ray #cells status in ray needed ??
+
 
 
 
