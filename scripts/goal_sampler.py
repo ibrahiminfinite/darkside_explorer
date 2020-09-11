@@ -34,7 +34,7 @@ class GoalSampler:
     def set_ray_tracer_map(self,gmap, origin):
         self.ray_tracer.set_map(gmap, origin)
 
-    def get_radial_points(self, origin, radius=5, step_size=math.pi/2):
+    def get_radial_points(self, origin, radius=5, step_size=math.pi/12):
         self.angular_step_size = step_size
         ang = 0 
         radial_points = []
