@@ -31,6 +31,12 @@ class RayTrace:
         else:
             return False
 
+    def is_unknown(self, cell_coordinate):
+        if self.cost_map[cell_coordinate[0],cell_coordinate[1]] == -1:
+            return True
+        else:
+            return False        
+
     def get_cell_value(self, cell_coord):
         if cell_coord[0] >= self.cost_map.shape[0] or cell_coord[1] >= self.cost_map.shape[1]:
             return 100 
