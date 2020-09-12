@@ -77,14 +77,22 @@ if __name__ == '__main__':
             g_list.append(goal_gains[-1][1])
             visualize.visualize_goal_samples(g_list,lifetime=6000)
             for i in range(1,3)[::-1]:
+                #check if current goal gain is less than last, if yes, continue
+                # if len(g_list)>0 and goal_gains[-1][0] < g_list[-1][0]:
+                #     sample_radius -= 10
+                #     rospy.loginfo("Radius has been reduced to %d", sample_radius)
+                #     continue
                 if distance(g_list[i], g_list[-1]) < sample_radius:
                     sample_radius -= 5
+                    rospy.loginfo("Radius has been reduced to %d", sample_radius)
                     continue
             movebase_client(goal_gains[-1][1], rpose.orientation.z)
             if empty_flag:
                 sample_radius += 5
+                rospy.loginfo("Radius has been increased to %d", sample_radius)
                 empty_flag = False
-        except:
+        except Exception as e:
+            print(e)
             print("NO GOALS FOUND")
             if len(goal_gains) == 0:
                 empty_flag = True

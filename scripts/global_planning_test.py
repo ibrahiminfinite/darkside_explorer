@@ -13,56 +13,125 @@ from goal_sampler import GoalSampler
 from map_manager import MapManager, RobotMonitor
 from raytrace_utils import RayTrace
 
-
-
+#move_base
+import tf
+import math
+import actionlib
+from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 
 class LocalPlanner:
 
     def __init__(self):
+        # Utilities
         self.m_manager = MapManager()
         self.r_monitor = RobotMonitor()
         self.g_sampler = GoalSampler()
-        self.visualize = DarksideVisualizer()
-        self.gmap = None
-        self.get_map()
-        self.current_goals = []
-        self.past_goals = []
+        self.visualize = DarksideVisualizer()        
 
-    def get_map(self):
+        # Planner variables
+        self.gmap = None
+        self.explored_map = None
+        self.robot_pose = None
+        self.goal_gains = []
+        self.current_goal = None
+        self.current_gain = 0
+        self.last_goal = None
+        self.last_gain = 0
+        self.goal_samples = []
+        self.previous_goals_list = []
+        self.sampling_radius = 15
+
+
+
+    def update_map(self):
 
         self.m_manager.update_map()
-        self.gmap = m_manager.get_map()
+        self.gmap = self.m_manager.get_map()
         self.g_sampler.set_ray_tracer_map(self.gmap,self.m_manager.get_map_origin())
-        while gmap is None:
+        while self.gmap is None:
             rospy.loginfo("Waiting for map ")
             self.m_manager.update_map()
-            self.gmap = m_manager.get_map()
-            self.g_sampler.set_ray_tracer_map(self.gmap,self.m_manager.get_map_origin())
+            self.gmap = self.m_manager.get_map()
+            self.g_sampler.set_ray_tracer_map(self.gmap, self.m_manager.get_map_origin())
 
         return self.gmap
 
-    def get_goals(self):
+
+    def update_robot_pose(self):
         self.r_monitor.update_robot_pose()
-        rpose = r_monitor.get_robot_pose()
-        self.current_goals = self.g_sampler.get_goals(rpose)
-        return self.current_goals
+        self.robot_pose = self.r_monitor.get_robot_pose()
+
+    
+    def update_goal(self):
+        self.goal_samples, gain_goal = self.g_sampler.get_goals(self.robot_pose,radius=self.sampling_radius)
+        self.current_goal, self.current_goal = gain_goal[-1]
+        self.last_goal = self.current_goal
+        self.last_goal = self.current_gain
+        self.previous_goals_list.append((self.current_goal,self.current_goal))
+        return self.current_goal
+
+
+    def update_markers(self): 
+        self.visualize.visualize_goal_samples(self.goal_samples, color=(0,1,0,1), lifetime=10)
+        self.visualize.visualize_goal_samples([self.current_goal],color=(1,0,0,1), lifetime=6000)
+
+
+    def update_sampling_radius(self):
+        pass
+
 
 
 class GlobalPlanner:
 
+    def movebase_client(self,point,orn):
+
+        client = actionlib.SimpleActionClient('X1/move_base',MoveBaseAction)
+        client.wait_for_server()
+
+        goal = MoveBaseGoal()
+        goal.target_pose.header.frame_id = "X1/map"
+        goal.target_pose.header.stamp = rospy.Time.now()
+        goal.target_pose.pose.position.x = point[0]
+        goal.target_pose.pose.position.y = point[1]
+        x , y, z, w = tf.transformations.quaternion_from_euler(0, 0, orn)
+        goal.target_pose.pose.orientation.x = x
+        goal.target_pose.pose.orientation.y = y
+        goal.target_pose.pose.orientation.z = z
+        goal.target_pose.pose.orientation.w = w
+
+        client.send_goal(goal)
+        wait = client.wait_for_result()
+        if not wait:
+            rospy.logerr("Action server not available!")
+            rospy.signal_shutdown("Action server not available!")
+        else:
+            return client.get_result()
+
+
     def __init__(self):
-
-        # local planner stuff
-        self.local_planner = None
-        self.local_planning_done = False
-        # list of functions to be called to check mission objectives like
-        #  1.  Return to home
-        #  2.  Increase/decrease search radius
-        #  3.  
-        self.mission_callbacks = []
-
+        self.local_planner = LocalPlanner()
         self.way_points = []
-        self.planning_step_id = 0
-        
+        self.planning_step_num = 0
+        self.local_plan_created = False
+        self.local_plan_executed = False
+
+        self.artifact_detected = False #add subscriber for artifact data
+        self.artifact_scored = False    # add subscriber for artifact score
+
+
+    def create_local_plan(self):
+        self.local_plan_executed = False
+        self.local_planner.update_map()
+        self.local_planner.update_robot_pose()
+        self.way_points.append(self.local_planner.update_goal())
+        self.local_planner.update_markers()
+        self.local_plan_created = True
+
+    def execute_local_goal(self):
+        pos = self.way_points[-1]
+        yaw = self.local_planner.robot_pose.orientation.z
+        self.movebase_client(pos, yaw)
+        self.local_plan_created = False
+        self.local_plan_executed = True
+
     
-    def get_local_goal()
