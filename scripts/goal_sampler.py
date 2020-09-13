@@ -51,9 +51,9 @@ class GoalSampler:
 
 
     def get_random_points(self, origin, radius=20, step_size=30):
-        x_low = origin[0] - radius/4
+        x_low = origin[0] - radius/2
         x_high = origin[0] + radius
-        y_low = origin[1] - radius/4
+        y_low = origin[1] - radius/2
         y_high = origin[1] + radius
         print(x_low,x_high, y_low, y_high)
         x_samples = np.random.uniform(low=x_low,high=x_high,size=step_size)
