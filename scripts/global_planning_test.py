@@ -39,7 +39,8 @@ class LocalPlanner:
         self.last_gain = 0
         self.goal_samples = []
         self.previous_goals_list = []
-        self.sampling_radius = 15
+        self.sampling_radius = 20
+        self.radius_flag = True
 
 
 
@@ -63,8 +64,13 @@ class LocalPlanner:
 
     
     def update_goal(self):
-        self.goal_samples, gain_goal = self.g_sampler.get_goals(self.robot_pose,radius=self.sampling_radius)
-        self.current_goal, self.current_goal = gain_goal[-1]
+        self.goal_samples, self.goal_gains = self.g_sampler.get_goals(self.robot_pose,radius=self.sampling_radius)
+        if len(self.goal_gains) == 0:
+            self.radius_flag=True
+        while self.radius_flag:
+            self.update_sampling_radius()
+            self.goal_samples, self.goal_gains = self.g_sampler.get_goals(self.robot_pose,radius=self.sampling_radius)
+        self.current_goal, self.current_goal = self.goal_gains[-1]
         self.last_goal = self.current_goal
         self.last_goal = self.current_gain
         self.previous_goals_list.append((self.current_goal,self.current_goal))
@@ -77,14 +83,18 @@ class LocalPlanner:
 
 
     def update_sampling_radius(self):
-        pass
-
+        if len(self.goal_gains) == 0:
+            self.sampling_radius -=5
+            self.radius_flag = True
+            rospy.loginfo("Sampling radius updated to %d", self.sampling_radius)
+        else:
+            self.radius_flag = False
 
 
 class GlobalPlanner:
 
     def movebase_client(self,point,orn):
-
+        rospy.loginfo("Goal received , X : %f , Y : %f",point[0],point[1])
         client = actionlib.SimpleActionClient('X1/move_base',MoveBaseAction)
         client.wait_for_server()
 

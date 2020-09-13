@@ -44,14 +44,15 @@ class MapManager:
             self.origin_x = map_msg.info.origin.position.x
             self.origin_y = map_msg.info.origin.position.y
 
-            rospy.loginfo("Height : %d ,  Width : %d ", self.map_height_in_cells, self.map_width_in_cells)
-            rospy.loginfo("OriginX : %d ,  OriginY : %d ", self.origin_x, self.origin_y)
+            # rospy.loginfo("Height : %d ,  Width : %d ", self.map_height_in_cells, self.map_width_in_cells)
+            # rospy.loginfo("OriginX : %d ,  OriginY : %d ", self.origin_x, self.origin_y)
 
             self.map_last_update_time = rospy.Time.now()
             self.raw_to_numpy(self.map_raw) #converts raw map array to numpy
             self.update = False
-            np.set_printoptions(linewidth=1000,threshold=sys.maxsize)
+            # np.set_printoptions(linewidth=1000,threshold=sys.maxsize)
             # print(self.numpy_map)
+            rospy.loginfo("Map Updated")
         else:
             # rospy.loginfo("New map update received, but not updated")
             pass
@@ -61,6 +62,7 @@ class MapManager:
         self.update = True #/X1/move_base/global_costmap/costmap
         self.map_subscriber = rospy.Subscriber("/X1/move_base/global_costmap/costmap", OccupancyGrid, self.mapCallback)
         self.numpy_map = None
+        self.explored_map = None
         self.map_raw = None
         self.map_last_update_time = rospy.Time.now()
         self.map_height_in_cells = None
@@ -79,6 +81,7 @@ class MapManager:
             numpy_map.append(row_i)
         self.numpy_map = np.asarray(numpy_map)
         self.numpy_map = np.rot90(self.numpy_map, k=1, axes=(0, 1))
+        self.explored_map = self.numpy_map
         # self.numpy_map = np.rot90(self.numpy_map, k=1, axes=(0, 1))
         # self.numpy_map = np.rot90(self.numpy_map, k=1, axes=(0, 1))
     

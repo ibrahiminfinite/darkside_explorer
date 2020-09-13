@@ -55,7 +55,6 @@ catkin_install_python(PROGRAMS
   scripts/visualizer.py 
   scripts/goal_sampler.py 
   scripts/raytrace_utils.py
-  scripts/local_sampling_test.py
   scripts/global_planning_test.py
   scripts/darkside_explorer.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

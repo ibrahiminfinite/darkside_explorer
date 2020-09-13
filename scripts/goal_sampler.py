@@ -34,11 +34,12 @@ class GoalSampler:
     def set_ray_tracer_map(self,gmap, origin):
         self.ray_tracer.set_map(gmap, origin)
 
-    def get_radial_points(self, origin, radius=20, step_size=math.pi/24):
+    def get_radial_points(self, origin, radius=20, step_size=math.pi/36):
         self.angular_step_size = step_size
-        ang = 0 
+        ang = math.pi /4
         radial_points = []
         x, y = origin
+        rospy.loginfo_once("Generatting goal samples")
         while ang < math.pi*2:  
             # print(ang)                      
             radial_points.append((x + radius*math.cos(ang),y + radius*math.sin(ang)))
@@ -58,6 +59,16 @@ class GoalSampler:
         start_y = int((start_coordinates[1] - self.ray_tracer.cost_map_origin[1])/0.05)
         start_coordinates = (start_x, start_y)
         reachable_points = []
+        # for point in radial_points:
+        #     #convert point to cell coordinates
+
+        #     x,y = point
+        #     x = int((x- self.ray_tracer.cost_map_origin[0]) / 0.05) # divide by map_resolution
+        #     y = int((y- self.ray_tracer.cost_map_origin[1]) / 0.05)
+        #     cell_coord = (x,y)
+        #     if self.is_reachable_in_straight_line(start_coordinates, end_pos=cell_coord):
+        #         reachable_points.append(point)
+
         for point in radial_points:
             #convert point to cell coordinates
 
@@ -65,11 +76,23 @@ class GoalSampler:
             x = int((x- self.ray_tracer.cost_map_origin[0]) / 0.05) # divide by map_resolution
             y = int((y- self.ray_tracer.cost_map_origin[1]) / 0.05)
             cell_coord = (x,y)
-            if self.is_reachable_in_straight_line(start_coordinates, end_pos=cell_coord):
+            if self.ray_tracer.has_free_neighbours(cell_coord):
                 reachable_points.append(point)
 
-        reachable_points_filtered = []
+        reachable_points1 = []
         for point in reachable_points:
+            #convert point to cell coordinates
+
+            x,y = point
+            x = int((x- self.ray_tracer.cost_map_origin[0]) / 0.05) # divide by map_resolution
+            y = int((y- self.ray_tracer.cost_map_origin[1]) / 0.05)
+            cell_coord = (x,y)
+            if not self.ray_tracer.is_obstacle(cell_coord):
+                reachable_points1.append(point)
+
+        reachable_points_filtered = []
+
+        for point in reachable_points1:
             #convert point to cell coordinates
 
             x,y = point
@@ -79,15 +102,18 @@ class GoalSampler:
             if not self.ray_tracer.is_unknown(cell_coord):
                 reachable_points_filtered.append(point)
 
-        # for point in radial_points:
+        # filter by x distance
+        # reachable_points_filtered1 = []
+        # for point in reachable_points_filtered:
         #     #convert point to cell coordinates
 
         #     x,y = point
         #     x = int((x- self.ray_tracer.cost_map_origin[0]) / 0.05) # divide by map_resolution
         #     y = int((y- self.ray_tracer.cost_map_origin[1]) / 0.05)
         #     cell_coord = (x,y)
-        #     if not self.ray_tracer.is_unknown(cell_coord):
-        #         reachable_points_filtered.append(point)
+        #     if x >start_coordinates[0] and not self.ray_tracer.is_unknown(point):
+        #         reachable_points_filtered1.append(point)
+
 
         return reachable_points_filtered
 
@@ -126,7 +152,7 @@ class GoalSampler:
                     if cell_val == -1:
                         gain += 100
                     elif cell_val == 0:
-                        gain += 1
+                        gain += .01
 
         return gain
 
@@ -134,7 +160,7 @@ class GoalSampler:
     def compute_gain(self, origin_coord, reachable_points):
         gains = []
         # rds1 = self.ray_tracer.sensor_config['range']
-        print("size ", self.ray_tracer.cost_map.shape)
+        # print("size ", self.ray_tracer.cost_map.shape)
         x_dist = (self.ray_tracer.cost_map.shape[0]/2)  * 0.05
         y_dist = (self.ray_tracer.cost_map.shape[1]/2)  * 0.05
         x_dist = abs(x_dist - abs(origin_coord[0]))

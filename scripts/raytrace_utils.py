@@ -37,6 +37,21 @@ class RayTrace:
         else:
             return False        
 
+    def has_free_neighbours(self, cell_coordinate):
+        x,y = cell_coordinate
+        is_obstacle_count = 0
+        obs_bound = 31
+        cell_neighs = [(x + i, y) for i in range(1,obs_bound)] +  [(x - i, y) for i in range(1,obs_bound)] 
+        cell_neighs += [(x, y + i) for i in range(1,obs_bound)]+[(x, y - i) for i in range(1,obs_bound)]
+        for neigh in cell_neighs:
+            if self.is_obstacle(neigh):
+                is_obstacle_count += 1
+        if is_obstacle_count > 2:
+            return False
+        else:
+            return True
+
+
     def get_cell_value(self, cell_coord):
         if cell_coord[0] >= self.cost_map.shape[0] or cell_coord[1] >= self.cost_map.shape[1]:
             return 100 
