@@ -15,8 +15,7 @@ class RayTrace:
         self.cost_map = cost_map #numpy array
         self.cost_map_origin = None
         self.sensor_config = sensor_config
-
-
+    
     def set_map(self,gmap, orign):
         self.cost_map = gmap
         self.cost_map_origin = orign

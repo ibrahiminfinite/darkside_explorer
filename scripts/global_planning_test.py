@@ -33,9 +33,9 @@ class LocalPlanner:
         self.explored_map = None
         self.robot_pose = None
         self.goal_gains = []
-        self.current_goal = None
+        self.current_goal = (0,0)
         self.current_gain = 0
-        self.last_goal = None
+        self.last_goal = (10,10)
         self.last_gain = 0
         self.goal_samples = []
         self.previous_goals_list = []
@@ -71,8 +71,25 @@ class LocalPlanner:
             self.update_sampling_radius()
             self.goal_samples, self.goal_gains = self.g_sampler.get_goals(self.robot_pose,radius=self.sampling_radius)
         self.current_goal, self.current_goal = self.goal_gains[-1]
+        #check if stuck at same pose
+        print(self.current_goal)
+        print(self.last_goal)
+        x1,y1 = self.current_goal
+        x2,y2 = self.last_goal
+
+        x1 = int(x1)
+        x2 = int(x2)
+        y1 = int(y1)
+        y2 = int(y2)
+        if (x1==x2 and y1==y2):
+            self.radius_flag=True
+            self.update_sampling_radius()
+            self.goal_samples, self.goal_gains = self.g_sampler.get_goals(self.robot_pose,radius=self.sampling_radius)
+            self.current_goal, self.current_goal = self.goal_gains[-1]     
+               
         self.last_goal = self.current_goal
-        self.last_goal = self.current_gain
+        self.last_gain = self.current_gain
+
         self.previous_goals_list.append((self.current_goal,self.current_goal))
         return self.current_goal
 

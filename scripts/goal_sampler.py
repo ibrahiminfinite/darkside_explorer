@@ -11,6 +11,7 @@ samples radial goals with current position for robot as the center
 
 import rospy
 import math
+import numpy as np
 from raytrace_utils import RayTrace
 
 
@@ -30,6 +31,7 @@ class GoalSampler:
         self.radial_relaxation = None # distance to increase or decrease if no goal found in meters
         self.robot_origin = None
         self.ray_tracer = RayTrace()
+        self.explored_areas = set()
 
     def set_ray_tracer_map(self,gmap, origin):
         self.ray_tracer.set_map(gmap, origin)
@@ -46,6 +48,19 @@ class GoalSampler:
             ang += step_size
         
         return radial_points
+
+
+    def get_random_points(self, origin, radius=20, step_size=30):
+        x_low = origin[0] - radius/4
+        x_high = origin[0] + radius
+        y_low = origin[1] - radius/4
+        y_high = origin[1] + radius
+        print(x_low,x_high, y_low, y_high)
+        x_samples = np.random.uniform(low=x_low,high=x_high,size=step_size)
+        y_samples = np.random.uniform(low=y_low,high=y_high,size=step_size)
+        return list(zip(x_samples,y_samples))
+
+
 
     def is_reachable_in_straight_line(self, start_pos, end_pos):
         collision, _, _ = self.ray_tracer.cast_ray(start_pos, end_pos)
@@ -145,6 +160,7 @@ class GoalSampler:
         gain = 0
         for ray in scan:
             for cell_coord in ray:
+                
                 if cell_coord[0] >= self.ray_tracer.cost_map.shape[0] or cell_coord[1] >= self.ray_tracer.cost_map.shape[1]:
                  cell_val = -1
                 else:
@@ -152,8 +168,8 @@ class GoalSampler:
                     if cell_val == -1:
                         gain += 100
                     elif cell_val == 0:
-                        gain += .01
-
+                        gain += 0
+                
         return gain
 
 
@@ -183,7 +199,7 @@ class GoalSampler:
     def get_goals(self, robot_pose, radius=10):
         x = robot_pose.position.x
         y = robot_pose.position.y
-        radial_points = self.get_radial_points((x,y),radius=radius)
+        radial_points = self.get_random_points((x,y),radius=radius)
         goals = self.get_reachable_points((x,y), radial_points)
         goal_gains = self.compute_gain((x,y), goals)
         return goals,goal_gains
