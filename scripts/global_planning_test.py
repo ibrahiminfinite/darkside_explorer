@@ -41,6 +41,7 @@ class LocalPlanner:
         self.previous_goals_list = []
         self.sampling_radius = 20
         self.radius_flag = True
+        # self.alt_goals = []
 
 
 
@@ -67,10 +68,12 @@ class LocalPlanner:
         self.goal_samples, self.goal_gains = self.g_sampler.get_goals(self.robot_pose,radius=self.sampling_radius)
         if len(self.goal_gains) == 0:
             self.radius_flag=True
-        while self.radius_flag:
+        while self.radius_flag :
             self.update_sampling_radius()
             self.goal_samples, self.goal_gains = self.g_sampler.get_goals(self.robot_pose,radius=self.sampling_radius)
-        self.current_goal, self.current_goal = self.goal_gains[-1]
+            if  len(self.goal_gains) == 0:
+                continue
+            self.current_goal, self.current_goal = self.goal_gains[-1]
         #check if stuck at same pose
         print(self.current_goal)
         print(self.last_goal)
@@ -81,30 +84,35 @@ class LocalPlanner:
         x2 = int(x2)
         y1 = int(y1)
         y2 = int(y2)
+
         if (x1==x2 and y1==y2):
-            self.radius_flag=True
+
+            self.radius_flag=False
             self.update_sampling_radius()
             self.goal_samples, self.goal_gains = self.g_sampler.get_goals(self.robot_pose,radius=self.sampling_radius)
-            self.current_goal, self.current_goal = self.goal_gains[-1]     
+            if  len(self.goal_gains) > 0:
+                self.current_goal, self.current_goal = self.goal_gains[-1]     
                
         self.last_goal = self.current_goal
         self.last_gain = self.current_gain
-
+        # self.alt_goals.append(self.goal_gains[-2])
         self.previous_goals_list.append((self.current_goal,self.current_goal))
+        self.update_sampling_radius()
         return self.current_goal
 
 
     def update_markers(self): 
-        self.visualize.visualize_goal_samples(self.goal_samples, color=(0,1,0,1), lifetime=10)
+        self.visualize.visualize_goal_samples(self.goal_samples, color=(0,1,0,1), lifetime=3)
         self.visualize.visualize_goal_samples([self.current_goal],color=(1,0,0,1), lifetime=6000)
 
 
-    def update_sampling_radius(self):
+    def update_sampling_radius(self,delta_radius=10):
         if len(self.goal_gains) == 0:
-            self.sampling_radius -=5
+            self.sampling_radius -= delta_radius
             self.radius_flag = True
             rospy.loginfo("Sampling radius updated to %d", self.sampling_radius)
         else:
+            self.sampling_radius += 3
             self.radius_flag = False
 
 

@@ -50,10 +50,29 @@ class GoalSampler:
         return radial_points
 
 
-    def get_random_points(self, origin, radius=20, step_size=30):
-        x_low = origin[0] - radius/2
+    def get_multi_radial_points(self, origin, radius=20, step_size=math.pi/36):
+        # radius_tmp = radius
+        self.angular_step_size = step_size
+        ang = math.pi /4
+        radial_points = []
+        x, y = origin
+        rospy.loginfo_once("Generatting goal samples")
+        while ang < math.pi*2:  
+            # print(ang)                      
+            radial_points.append((x + radius*math.cos(ang),y + radius*math.sin(ang)))
+            ang += step_size
+        radius = radius/2
+        while ang < math.pi*2:  
+            # print(ang)                      
+            radial_points.append((x + radius*math.cos(ang),y + radius*math.sin(ang)))
+            ang += step_size 
+
+        return radial_points
+
+    def get_random_points(self, origin, radius=30, step_size=60):
+        x_low = origin[0] - radius/4
         x_high = origin[0] + radius
-        y_low = origin[1] - radius/2
+        y_low = origin[1] - radius
         y_high = origin[1] + radius
         print(x_low,x_high, y_low, y_high)
         x_samples = np.random.uniform(low=x_low,high=x_high,size=step_size)
@@ -199,7 +218,7 @@ class GoalSampler:
     def get_goals(self, robot_pose, radius=10):
         x = robot_pose.position.x
         y = robot_pose.position.y
-        radial_points = self.get_random_points((x,y),radius=radius)
+        radial_points = self.get_multi_radial_points((x,y),radius=radius) + self.get_random_points((x,y),radius=radius)
         goals = self.get_reachable_points((x,y), radial_points)
         goal_gains = self.compute_gain((x,y), goals)
         return goals,goal_gains
