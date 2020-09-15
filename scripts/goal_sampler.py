@@ -73,8 +73,8 @@ class GoalSampler:
         # radius = self.ray_tracer.cost_map.shape[0] * 0.8 * 0.05
         x_low = origin[0] - radius/4
         x_high = origin[0] + radius
-        y_low = origin[1] - radius
-        y_high = origin[1] + radius
+        y_low = origin[1] - radius/4
+        y_high = origin[1] + radius/4
         print(x_low,x_high, y_low, y_high)
         x_samples = np.random.uniform(low=x_low,high=x_high,size=step_size)
         y_samples = np.random.uniform(low=y_low,high=y_high,size=step_size)
@@ -202,7 +202,7 @@ class GoalSampler:
 
 
 
-    def get_goals(self, robot_pose, radius=25):
+    def get_goals(self, robot_pose, radius=30):
         x = robot_pose.position.x
         y = robot_pose.position.y
         radial_points =  self.get_random_points((x,y),radius=radius) + self.get_multi_radial_points((x,y),radius=radius)
