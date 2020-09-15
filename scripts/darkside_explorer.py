@@ -17,8 +17,8 @@ if __name__ == '__main__':
         # if not planner.artifact_detected:    
         planner.create_local_plan()
         planner.execute_local_goal()
-        if time.time() - time_start >= 7200:
-            break
+        # if time.time() - time_start >= 7200:
+        #     break
         # if planner.artifact_detected:
         #     planner.return_to_home()
         # if planner.artifact_scored:
