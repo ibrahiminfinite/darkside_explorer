@@ -9,7 +9,7 @@ from global_planning_test import GlobalPlanner
 
 if __name__ == '__main__':
     rospy.init_node('darkside_explorer', anonymous=True)
-
+    time.sleep(30)
     planner = GlobalPlanner()
     mission_completed = False
     time_start = time.time()
