@@ -12,11 +12,13 @@ from visualizer import DarksideVisualizer
 from goal_sampler import GoalSampler
 from map_manager import MapManager, RobotMonitor
 from raytrace_utils import RayTrace
+from std_msgs.msg import Bool,Int32
 
 #move_base
 import tf
 import math
 import actionlib
+import random
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 
 class LocalPlanner:
@@ -112,7 +114,8 @@ class LocalPlanner:
             self.radius_flag = True
             rospy.loginfo("Sampling radius updated to %d", self.sampling_radius)
         else:
-            self.sampling_radius += 3
+            if self.sampling_radius < 30:
+                self.sampling_radius += 3
             self.radius_flag = False
 
 
@@ -143,6 +146,15 @@ class GlobalPlanner:
             return client.get_result()
 
 
+    def foundCallback(self,msg):
+        if msg.data== True:
+            self.artifact_detected =True
+
+    def scoreCallback(self,msg):
+        if msg.data== True:
+            self.artifact_scored = True
+
+
     def __init__(self):
         self.local_planner = LocalPlanner()
         self.way_points = []
@@ -152,6 +164,9 @@ class GlobalPlanner:
 
         self.artifact_detected = False #add subscriber for artifact data
         self.artifact_scored = False    # add subscriber for artifact score
+
+        self.found_subscriber = rospy.Subscriber("/X1/artifact_found_pub", Bool, self.foundCallback)
+        self.score_subscriber = rospy.Subscriber("/subt/score", Int32, self.scoreCallback)
 
 
     def create_local_plan(self):
@@ -170,3 +185,5 @@ class GlobalPlanner:
         self.local_plan_executed = True
 
     
+    def return_to_home(self):
+        self.movebase_client(self.local_planner.g_sampler.get_goals_to_home(self.local_planner.robot_pose), 0)

@@ -50,7 +50,7 @@ class GoalSampler:
         return radial_points
 
 
-    def get_multi_radial_points(self, origin, radius=20, step_size=math.pi/36):
+    def get_multi_radial_points(self, origin, radius=10, step_size=math.pi/24):
         # radius_tmp = radius
         self.angular_step_size = step_size
         ang = math.pi /4
@@ -69,7 +69,8 @@ class GoalSampler:
 
         return radial_points
 
-    def get_random_points(self, origin, radius=30, step_size=60):
+    def get_random_points(self, origin, radius=15, step_size=20):
+        # radius = self.ray_tracer.cost_map.shape[0] * 0.8 * 0.05
         x_low = origin[0] - radius/4
         x_high = origin[0] + radius
         y_low = origin[1] - radius
@@ -87,21 +88,29 @@ class GoalSampler:
 
 
 
+    def distance(self, p1, p2):
+        return math.sqrt((p1[0]-p2[0])**2 + (p1[1]- p2[1])**2)
+
+    def get_homing_points(self,radial_points):
+        #convert point to cell coordinates
+        distances = []
+
+        for point in radial_points:
+            #convert point to cell coordinates
+            distances.append(self.distance((0,0), point))
+
+        return radial_points[distances.index(min(distances))]
+
+
     def get_reachable_points(self, start_coordinates, radial_points):
         #convert point to cell coordinates
+        start_coordinates_tmp = start_coordinates
         start_x = int((start_coordinates[0] - self.ray_tracer.cost_map_origin[0])/0.05)
         start_y = int((start_coordinates[1] - self.ray_tracer.cost_map_origin[1])/0.05)
         start_coordinates = (start_x, start_y)
         reachable_points = []
-        # for point in radial_points:
-        #     #convert point to cell coordinates
 
-        #     x,y = point
-        #     x = int((x- self.ray_tracer.cost_map_origin[0]) / 0.05) # divide by map_resolution
-        #     y = int((y- self.ray_tracer.cost_map_origin[1]) / 0.05)
-        #     cell_coord = (x,y)
-        #     if self.is_reachable_in_straight_line(start_coordinates, end_pos=cell_coord):
-        #         reachable_points.append(point)
+
 
         for point in radial_points:
             #convert point to cell coordinates
@@ -113,20 +122,11 @@ class GoalSampler:
             if self.ray_tracer.has_free_neighbours(cell_coord):
                 reachable_points.append(point)
 
-        reachable_points1 = []
-        for point in reachable_points:
-            #convert point to cell coordinates
 
-            x,y = point
-            x = int((x- self.ray_tracer.cost_map_origin[0]) / 0.05) # divide by map_resolution
-            y = int((y- self.ray_tracer.cost_map_origin[1]) / 0.05)
-            cell_coord = (x,y)
-            if not self.ray_tracer.is_obstacle(cell_coord):
-                reachable_points1.append(point)
 
         reachable_points_filtered = []
 
-        for point in reachable_points1:
+        for point in reachable_points:
             #convert point to cell coordinates
 
             x,y = point
@@ -135,19 +135,6 @@ class GoalSampler:
             cell_coord = (x,y)
             if not self.ray_tracer.is_unknown(cell_coord):
                 reachable_points_filtered.append(point)
-
-        # filter by x distance
-        # reachable_points_filtered1 = []
-        # for point in reachable_points_filtered:
-        #     #convert point to cell coordinates
-
-        #     x,y = point
-        #     x = int((x- self.ray_tracer.cost_map_origin[0]) / 0.05) # divide by map_resolution
-        #     y = int((y- self.ray_tracer.cost_map_origin[1]) / 0.05)
-        #     cell_coord = (x,y)
-        #     if x >start_coordinates[0] and not self.ray_tracer.is_unknown(point):
-        #         reachable_points_filtered1.append(point)
-
 
         return reachable_points_filtered
 
@@ -215,15 +202,21 @@ class GoalSampler:
 
 
 
-    def get_goals(self, robot_pose, radius=10):
+    def get_goals(self, robot_pose, radius=25):
         x = robot_pose.position.x
         y = robot_pose.position.y
-        radial_points = self.get_multi_radial_points((x,y),radius=radius) + self.get_random_points((x,y),radius=radius)
+        radial_points =  self.get_random_points((x,y),radius=radius) + self.get_multi_radial_points((x,y),radius=radius)
         goals = self.get_reachable_points((x,y), radial_points)
         goal_gains = self.compute_gain((x,y), goals)
         return goals,goal_gains
 
-
+    def get_goals_to_home(self, robot_pose, radius=25):
+        x = robot_pose.position.x
+        y = robot_pose.position.y
+        radial_points =  self.get_random_points((x,y),radius=radius) + self.get_multi_radial_points((x,y),radius=radius)
+        goals = self.get_reachable_points((x,y), radial_points)
+        goal_gains = self.get_homing_points(goals)
+        return goal_gains
 
 if __name__ == '__main__':
     import rospy
