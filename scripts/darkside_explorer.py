@@ -19,8 +19,9 @@ if __name__ == '__main__':
         planner.execute_local_goal()
         # if time.time() - time_start >= 7200:
         #     break
-        # if planner.artifact_detected:
-        #     planner.return_to_home()
-        # if planner.artifact_scored:
-        #     planner.artifact_detected = False
-        #     planner.artifact_scored = False
+        if planner.artifact_detected:
+            rospy.loginfo("Artifact found , returning to home")
+            planner.return_to_home()
+        if planner.artifact_scored:
+            planner.artifact_detected = False
+            planner.artifact_scored = False

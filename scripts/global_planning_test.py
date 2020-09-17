@@ -186,4 +186,8 @@ class GlobalPlanner:
 
     
     def return_to_home(self):
-        self.movebase_client(self.local_planner.g_sampler.get_goals_to_home(self.local_planner.robot_pose), 0)
+        waypoints = self.way_points
+        while not self.artifact_scored:
+            if waypoints:
+                x,y = waypoints.pop(-1)
+                self.movebase_client((x,y), 0)
